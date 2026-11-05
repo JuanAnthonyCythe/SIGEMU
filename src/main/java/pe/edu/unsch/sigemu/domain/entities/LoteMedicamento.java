@@ -8,6 +8,7 @@ import pe.edu.unsch.sigemu.domain.rules.ReglaNegocioException;
 
 public class LoteMedicamento {
 
+    private final Long id;
     private final String numeroLote;
     private final String medicamento;
     private final LocalDate fechaFabricacion;
@@ -20,13 +21,43 @@ public class LoteMedicamento {
     public LoteMedicamento(String numeroLote, String medicamento,
                            LocalDate fechaFabricacion, LocalDate fechaCaducidad,
                            int stock, int stockMinimo) {
-        this(numeroLote, medicamento, fechaFabricacion, fechaCaducidad,
+        this(null, numeroLote, medicamento, fechaFabricacion, fechaCaducidad,
                 stock, stockMinimo, new PoliticaAlertaEstandar());
     }
 
     public LoteMedicamento(String numeroLote, String medicamento,
                            LocalDate fechaFabricacion, LocalDate fechaCaducidad,
                            int stock, int stockMinimo, PoliticaAlertaStock politicaAlerta) {
+        this(null, numeroLote, medicamento, fechaFabricacion, fechaCaducidad,
+                stock, stockMinimo, politicaAlerta);
+    }
+
+    public LoteMedicamento(Long id, String numeroLote, String medicamento,
+                           LocalDate fechaFabricacion, LocalDate fechaCaducidad,
+                           int stock, int stockMinimo) {
+        this(id, numeroLote, medicamento, fechaFabricacion, fechaCaducidad,
+                stock, stockMinimo, (EstadoLote) null);
+    }
+
+    public LoteMedicamento(Long id, String numeroLote, String medicamento,
+                           LocalDate fechaFabricacion, LocalDate fechaCaducidad,
+                           int stock, int stockMinimo, PoliticaAlertaStock politicaAlerta) {
+        this(id, numeroLote, medicamento, fechaFabricacion, fechaCaducidad,
+                stock, stockMinimo, politicaAlerta, null);
+    }
+
+    public LoteMedicamento(Long id, String numeroLote, String medicamento,
+                           LocalDate fechaFabricacion, LocalDate fechaCaducidad,
+                           int stock, int stockMinimo, EstadoLote estado) {
+        this(id, numeroLote, medicamento, fechaFabricacion, fechaCaducidad,
+                stock, stockMinimo, new PoliticaAlertaEstandar(), estado);
+    }
+
+    public LoteMedicamento(Long id, String numeroLote, String medicamento,
+                           LocalDate fechaFabricacion, LocalDate fechaCaducidad,
+                           int stock, int stockMinimo, PoliticaAlertaStock politicaAlerta,
+                           EstadoLote estado) {
+        this.id = id;
         this.numeroLote = requireText(numeroLote, "El número de lote es obligatorio");
         this.medicamento = requireText(medicamento, "El medicamento es obligatorio");
         this.fechaFabricacion = Objects.requireNonNull(fechaFabricacion, "La fecha de fabricación es obligatoria");
@@ -43,7 +74,7 @@ public class LoteMedicamento {
         this.stock = stock;
         this.stockMinimo = stockMinimo;
         this.politicaAlerta = Objects.requireNonNull(politicaAlerta, "La política de alerta es obligatoria");
-        actualizarEstado();
+        this.estado = (estado != null) ? estado : this.politicaAlerta.evaluar(this);
     }
 
     public void registrarIngreso(int cantidad) {
@@ -62,6 +93,10 @@ public class LoteMedicamento {
         }
         stock -= cantidad;
         actualizarEstado();
+    }
+
+    public void marcarComoVencido() {
+        this.estado = EstadoLote.VENCIDO;
     }
 
     private boolean estaVencido() {
@@ -85,6 +120,7 @@ public class LoteMedicamento {
         return value;
     }
 
+    public Long getId() { return id; }
     public String getNumeroLote() { return numeroLote; }
     public String getMedicamento() { return medicamento; }
     public LocalDate getFechaFabricacion() { return fechaFabricacion; }

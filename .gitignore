@@ -37,3 +37,10 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+
+### Frontend Vite / React ###
+sigemu-frontend/node_modules/
+sigemu-frontend/dist/
+sigemu-frontend/dist-ssr/
+sigemu-frontend/*.local
